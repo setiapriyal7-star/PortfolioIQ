@@ -493,11 +493,19 @@ st.caption(
 
 
 # 11. DASHBOARD TABS
-tab_overview, tab_risk, tab_stress, tab_method = st.tabs([
+
+tab_overview, tab_risk, tab_stress, tab_goal, tab_method = st.tabs([
+
     "◈ Portfolio Overview",
+
     "◆ Risk Intelligence",
+
     "⚡ Stress Simulator",
+
+    "🎯 Goal Planner",
+
     "ⓘ Methodology"
+
 ])
 
 
@@ -852,7 +860,402 @@ with tab_stress:
 
 
 # ============================================================
-# TAB 4: METHODOLOGY AND DOWNLOADABLE REPORT
+
+
+# ============================================================
+# TAB 4: PERSONAL FINANCIAL GOAL PLANNER
+# ============================================================
+
+with tab_goal:
+
+    st.markdown("### Turn your financial goals into a practical plan")
+
+    st.write(
+        "Tell PortfolioIQ what you are saving for, "
+        "your target amount and your deadline. "
+        "We'll calculate your savings requirement and "
+        "provide personalised educational insights."
+    )
+
+    st.divider()
+
+    # USER GOAL INPUTS
+
+    st.markdown("### 1. Tell us about your goal")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        goal_name = st.text_input(
+            "What are you saving for?",
+            value="Buying my first car",
+            key="goal_name"
+        )
+
+        goal_category = st.selectbox(
+            "Goal category",
+            [
+                "Vehicle / Car",
+                "Travel / Vacation",
+                "House / Property",
+                "Higher Education",
+                "Emergency Fund",
+                "Business",
+                "Other"
+            ],
+            key="goal_category"
+        )
+
+        target_amount = st.number_input(
+            "Target amount required (₹)",
+            min_value=1000,
+            max_value=100000000,
+            value=1000000,
+            step=10000,
+            key="goal_target"
+        )
+
+    with col2:
+
+        current_savings = st.number_input(
+            "Amount already saved (₹)",
+            min_value=0,
+            max_value=100000000,
+            value=200000,
+            step=10000,
+            key="goal_saved"
+        )
+
+        goal_months = st.number_input(
+            "When do you want to achieve this goal? (months)",
+            min_value=1,
+            max_value=600,
+            value=12,
+            step=1,
+            key="goal_months"
+        )
+
+        monthly_capacity = st.number_input(
+            "How much can you comfortably save monthly? (₹)",
+            min_value=0,
+            max_value=10000000,
+            value=30000,
+            step=1000,
+            key="goal_monthly"
+        )
+
+    st.divider()
+
+    # GOAL CALCULATIONS
+
+    remaining_amount = max(
+        target_amount - current_savings,
+        0
+    )
+
+    required_monthly_saving = (
+        remaining_amount / goal_months
+    )
+
+    monthly_gap = max(
+        required_monthly_saving - monthly_capacity,
+        0
+    )
+
+    projected_savings = (
+        current_savings
+        + monthly_capacity * goal_months
+    )
+
+    progress = min(
+        current_savings / target_amount,
+        1.0
+    )
+
+    # GOAL SUMMARY
+
+    st.markdown("### 2. Your financial goal analysis")
+
+    metric1, metric2, metric3 = st.columns(3)
+
+    metric1.metric(
+        "Target amount",
+        f"₹{target_amount:,.0f}"
+    )
+
+    metric2.metric(
+        "Remaining amount",
+        f"₹{remaining_amount:,.0f}"
+    )
+
+    metric3.metric(
+        "Current progress",
+        f"{progress * 100:.1f}%"
+    )
+
+    st.markdown("#### Your savings progress")
+
+    st.progress(progress)
+
+    st.caption(
+        f"You have saved ₹{current_savings:,.0f} "
+        f"out of your ₹{target_amount:,.0f} goal."
+    )
+
+    st.divider()
+
+    # MONTHLY SAVINGS REQUIREMENT
+
+    st.markdown("### 3. How much should you save?")
+
+    left, right = st.columns(2)
+
+    left.metric(
+        "Required monthly savings",
+        f"₹{required_monthly_saving:,.0f}"
+    )
+
+    right.metric(
+        "Your monthly savings capacity",
+        f"₹{monthly_capacity:,.0f}"
+    )
+
+    if remaining_amount == 0:
+
+        st.success(
+            "Congratulations! You have already reached "
+            "your financial goal."
+        )
+
+    elif monthly_capacity >= required_monthly_saving:
+
+        st.success(
+            "Your goal appears achievable within your "
+            "chosen timeline based on your stated "
+            "monthly savings capacity."
+        )
+
+    else:
+
+        st.warning(
+            f"You have a monthly savings gap of "
+            f"₹{monthly_gap:,.0f}. Your current savings "
+            f"capacity may not be sufficient to reach "
+            f"this goal within {goal_months} months."
+        )
+
+    # PROJECTED SAVINGS
+
+    st.markdown("### 4. Your projected savings")
+
+    st.metric(
+        "Projected amount by your deadline",
+        f"₹{projected_savings:,.0f}",
+        delta=(
+            f"₹{projected_savings - target_amount:,.0f} "
+            "compared with target"
+        )
+    )
+
+    if projected_savings >= target_amount:
+
+        st.caption(
+            "This projection assumes you save the same "
+            "amount every month, without investment returns."
+        )
+
+    else:
+
+        st.caption(
+            "At your current savings capacity, you may "
+            "fall short of your target."
+        )
+
+    st.divider()
+
+    # PERSONALIZED RECOMMENDATIONS
+
+    st.markdown("### 5. Your personalised recommendations")
+
+    if remaining_amount == 0:
+
+        st.success(
+            "Your goal is fully funded. Consider maintaining "
+            "a separate emergency reserve before committing "
+            "the money to a purchase."
+        )
+
+    else:
+
+        if monthly_capacity >= required_monthly_saving:
+
+            st.success(
+                "Your stated monthly savings capacity is "
+                "sufficient for this target. Try automating "
+                "a monthly transfer to a separate goal fund."
+            )
+
+        else:
+
+            st.warning(
+                f"Try increasing your monthly savings by "
+                f"₹{monthly_gap:,.0f}, if affordable. "
+                "Do not compromise essential expenses or "
+                "emergency savings to meet the target."
+            )
+
+            affordable_months = (
+                int(np.ceil(
+                    remaining_amount / monthly_capacity
+                ))
+                if monthly_capacity > 0
+                else None
+            )
+
+            if affordable_months is not None:
+
+                st.info(
+                    f"At your current savings capacity, "
+                    f"you may need approximately "
+                    f"{affordable_months} months instead "
+                    "of your chosen deadline."
+                )
+
+            else:
+
+                st.info(
+                    "Enter a realistic monthly savings "
+                    "capacity above zero to calculate "
+                    "an estimated completion timeline."
+                )
+
+        if goal_months <= 12:
+
+            st.warning(
+                "This is a short-term goal. Money needed "
+                "soon should generally be kept accessible "
+                "and exposed to limited market risk. "
+                "Avoid relying on equity-market returns "
+                "to meet a fixed near-term deadline."
+            )
+
+        elif goal_months <= 36:
+
+            st.info(
+                "This is a medium-term goal. Review your "
+                "ability to tolerate losses and the timing "
+                "of withdrawals before taking investment risk."
+            )
+
+        else:
+
+            st.info(
+                "You have a longer planning horizon. "
+                "Review your savings progress periodically "
+                "and reassess your strategy as the deadline "
+                "approaches."
+            )
+
+        if annual_volatility * 100 > risk_thresholds[risk_profile]:
+
+            st.warning(
+                "Your selected portfolio has historical "
+                "volatility above the indicative level "
+                "for your chosen risk profile. Consider "
+                "whether money needed for this goal should "
+                "be separated from volatile investments."
+            )
+
+        if monthly_capacity > 0:
+
+            st.write(
+                "Your goal plan is based on your stated "
+                "savings capacity, not assumed market returns."
+            )
+
+    st.divider()
+
+    # WHAT-IF SAVINGS SIMULATOR
+
+    st.markdown("### 6. What-if savings simulator")
+
+    st.write(
+        "See how increasing your monthly savings "
+        "could change your goal completion timeline."
+    )
+
+    extra_saving = st.slider(
+        "Additional monthly savings (₹)",
+        min_value=0,
+        max_value=50000,
+        value=5000,
+        step=1000,
+        key="goal_extra_saving"
+    )
+
+    revised_monthly_saving = (
+        monthly_capacity + extra_saving
+    )
+
+    if remaining_amount == 0:
+
+        revised_months = 0
+
+    elif revised_monthly_saving > 0:
+
+        revised_months = int(np.ceil(
+            remaining_amount / revised_monthly_saving
+        ))
+
+    else:
+
+        revised_months = None
+
+    st.metric(
+        "New monthly savings amount",
+        f"₹{revised_monthly_saving:,.0f}"
+    )
+
+    if revised_months is not None:
+
+        st.metric(
+            "Estimated months to reach your goal",
+            revised_months
+        )
+
+        if revised_months <= goal_months:
+
+            st.success(
+                "With this additional savings amount, "
+                "your target appears achievable within "
+                "your selected deadline."
+            )
+
+        else:
+
+            st.warning(
+                "Even with this additional amount, "
+                "you may need more time to reach your goal."
+            )
+
+    else:
+
+        st.info(
+            "Increase your monthly savings to calculate "
+            "an estimated completion timeline."
+        )
+
+    st.caption(
+        "All projections exclude investment returns, "
+        "taxes, inflation and unexpected expenses. "
+        "These are educational estimates, not guaranteed "
+        "financial outcomes or investment recommendations."
+    )
+
+
+# ============================================================
+# TAB 5: METHODOLOGY AND DOWNLOADABLE REPORT
 # ============================================================
 
 with tab_method:
